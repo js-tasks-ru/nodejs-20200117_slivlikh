@@ -1,8 +1,8 @@
 const http = require('http');
 const path = require('path');
-const microExpress = require('./MicroExpress');
-const MicroRouter = require('./MicroRouter');
-const {getFile} = require('./fileManager');
+const microExpress = require('../common/MicroExpress');
+const MicroRouter = require('../common/MicroRouter');
+const {getFile} = require('../common/fileManager');
 
 const app = microExpress();
 const router = new MicroRouter();
