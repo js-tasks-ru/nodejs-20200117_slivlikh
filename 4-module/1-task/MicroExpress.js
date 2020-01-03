@@ -31,9 +31,7 @@ class MicroExpress {
   }
 
   handler() {
-    console.log('handler 1');
     return (req, res) => {
-      console.log('handler 2');
       this.execute(req, res);
     };
   }

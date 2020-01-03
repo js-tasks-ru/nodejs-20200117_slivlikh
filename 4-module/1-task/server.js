@@ -1,14 +1,16 @@
 const http = require('http');
+const path = require('path');
 const microExpress = require('./MicroExpress');
 const MicroRouter = require('./MicroRouter');
+const {getFile} = require('./fileManager');
 
 const app = microExpress();
 const router = new MicroRouter();
 const server = http.createServer(app.handler());
-// const server = http.createServer((req, res) => {
-//   res.statusCode = 200;
-//   res.end('Home Page');
-// });
+const FILES_DIR = 'files';
+
+const errorsCode = ['ENOENT', 'ENOTDIR'];
+
 app.use(router.middleware());
 
 app.use((err, req, res, next) => {
@@ -17,78 +19,41 @@ app.use((err, req, res, next) => {
   res.end(JSON.stringify(err));
 });
 
+
+router.get('/(:fileName).(:fileExpansion)', (req, res, next) => {
+  const fileUri = path.join(path.resolve(__dirname), FILES_DIR, `${req.params.fileName}.${req.params.fileExpansion}`);
+  getFile(fileUri)
+      .on('error', (err) => {
+        if (errorsCode.indexOf(err.code) !== -1) {
+          res.statusCode = 404;
+          res.end(`${req.params.fileName}.${req.params.fileExpansion}`);
+          return;
+        }
+
+        next(err);
+      })
+      .on('end', () => {
+        next();
+      })
+      .pipe(res);
+});
+
 router.get('/', (req, res) => {
   res.statusCode = 200;
-  res.end('Home Page 1');
+  res.end(`Home page 200`);
 });
 
-router.get('/about', (req, res, next) => {
-  setTimeout(() => {
-    res.statusCode = 200;
-    res.end('About Page');
-    next();
-  }, 2000);
+router.get('(/:url)/*', (req, res) => {
+  res.statusCode = 400;
+  res.end(`Deep url ${req.params.url} 400`);
 });
 
-router.get('/product(/:id)', (req, res, next) => {
-  setTimeout(() => {
-    res.statusCode = 200;
-    res.end(`Product Page ${req.params.id}`);
-    next();
-  }, 2000);
+router.get('*/(:fileName).(:fileExpansion)', (req, res) => {
+  res.statusCode = 400;
+  res.end(`${req.params.fileName}.${req.params.fileExpansion} deep 400`);
 });
-
-router.get('(/:url)', (req, res, next) => {
-  setTimeout(() => {
-    res.statusCode = 200;
-    res.end(`First ${req.params.url}`);
-    next();
-  }, 100);
-});
-
-router.get('(/:url)/*', (req, res, next) => {
-  setTimeout(() => {
-    res.statusCode = 501;
-    res.end(`Deep url ${req.params.url} 501`);
-    next();
-  }, 100);
-});
-
-server.listen(3000, () => {
-  console.log('server is listening on 3000 port');
-});
-
 
 process.on('error', (err) => {
   // console.log(err);
 });
-// const url = require('url');
-// const http = require('http');
-// const path = require('path');
-// const stream = require('stream');
-// const server = new http.Server();
-//
-//
-//
-// server.on('request', (req, res) => {
-//   const pathname = url.parse(req.url).pathname.slice(1);
-//
-//   const filepath = path.join(__dirname, 'files', pathname);
-//
-//   switch (req.method) {
-//     case 'GET':
-//
-//       break;
-//
-//     default:
-//       res.statusCode = 501;
-//       res.end('Not implemented');
-//   }
-// });
-//
-// server.on('error', (req, res) => {
-//   res.statusCode = 500;
-//   res.end('Internal server error 500');
-// });
-//
-// module.exports = server;
+module.exports = server;

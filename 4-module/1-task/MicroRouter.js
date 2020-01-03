@@ -29,7 +29,6 @@ class MicroRouter {
   }
 
   resolveController(req) {
-    console.log(req.method);
     switch (req.method.toLowerCase()) {
       case ReqMethods.GET:
         return this.getController;
