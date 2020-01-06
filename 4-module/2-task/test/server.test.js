@@ -15,8 +15,8 @@ describe('4-module-2-task', () => {
     });
 
     after((done) => {
-      fse.emptyDirSync(filesFolder);
-      fse.writeFileSync(path.join(filesFolder, '.gitkeep'), '');
+      // fse.emptyDirSync(filesFolder);
+      // fse.writeFileSync(path.join(filesFolder, '.gitkeep'), '');
       server.close(done);
     });
 
