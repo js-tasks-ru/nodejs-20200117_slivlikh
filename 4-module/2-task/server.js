@@ -4,7 +4,6 @@ const microExpress = require('../common/MicroExpress');
 const MicroRouter = require('../common/MicroRouter');
 const {writeFile, removeFile, isFileExist} = require('../common/fileManager');
 const LimitSizeStream = require('./LimitSizeStream');
-
 const app = microExpress();
 const router = new MicroRouter();
 const server = http.createServer(app.handler());
@@ -30,7 +29,6 @@ app.use((err, req, res, next) => {
 
 router.post('/(:fileName).(:fileExpansion)', async (req, res, next) => {
   const contentLength = req.headers['content-length'];
-  console.log(req.headers);
   if (Number(contentLength) === 0) {
     res.setHeader('Connection', 'close');
     res.statusCode = 409;
@@ -39,7 +37,6 @@ router.post('/(:fileName).(:fileExpansion)', async (req, res, next) => {
     return;
   }
   const fileUri = path.join(path.resolve(__dirname), FILES_DIR, `${req.params.fileName}.${req.params.fileExpansion}`);
-  console.log(fileUri);
   const isExist = await isFileExist(fileUri);
   if (isExist) {
     res.setHeader('Connection', 'close');
@@ -48,32 +45,31 @@ router.post('/(:fileName).(:fileExpansion)', async (req, res, next) => {
     return;
   }
 
+  const writeStream = writeFile(fileUri);
   const transformStream = new LimitSizeStream({limit: 1024 * 1024});
   transformStream.on('error', (err) => {
-    console.log('error tr');
     next(err);
   });
-  const wrightStream = writeFile(fileUri);
-  wrightStream.on('error', (err) => {
-    console.log('error w');
+
+  req.pipe(transformStream).pipe(writeStream);
+
+  writeStream.on('error', (err) => {
     next(err);
-  }).on('finish', () => {
-    console.log('fin');
-    wrightStream.close(() => {
-      res.statusCode = 201;
-      res.end();
-    });
+  }).on('close', () => {
+    res.statusCode = 201;
+    res.end();
   });
+
   req.on('close', async (e) => {
+    if (res.writableEnded) {
+      return;
+    }
     await removeFile(fileUri).catch((err) => {
       next(err);
     });
   }).on('error', (error) => {
-    console.log('error req');
     next(error);
   });
-
-  req.pipe(transformStream).pipe(wrightStream);
 });
 
 router.post('(/:url)/*', (req, res) => {

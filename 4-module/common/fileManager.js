@@ -5,7 +5,9 @@ const getFile = function(path) {
 };
 
 const writeFile = function(path) {
-  return fs.createWriteStream(path);
+  return fs.createWriteStream(path, {
+    flags: 'wx',
+  });
 };
 
 const removeFile = function(path) {
