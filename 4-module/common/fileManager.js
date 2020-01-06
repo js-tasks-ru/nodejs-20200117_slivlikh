@@ -11,10 +11,10 @@ const writeFile = function(path) {
 };
 
 const removeFile = function(path) {
-  return new Promise((res, rej) => {
+  return new Promise((res) => {
     fs.unlink(path, (err) => {
       if (err) {
-        rej(err);
+        res(err);
       }
       res();
     });

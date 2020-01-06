@@ -9,8 +9,6 @@ const router = new MicroRouter();
 const server = http.createServer(app.handler());
 const FILES_DIR = 'files';
 
-const errorsCode = ['LIMIT_EXCEEDED'];
-
 app.use(router.middleware());
 
 app.use((err, req, res, next) => {
@@ -64,9 +62,10 @@ router.post('/(:fileName).(:fileExpansion)', async (req, res, next) => {
     if (res.writableEnded) {
       return;
     }
-    await removeFile(fileUri).catch((err) => {
-      next(err);
-    });
+    const error = await removeFile(fileUri);
+    if (error) {
+      next(error);
+    }
   }).on('error', (error) => {
     next(error);
   });

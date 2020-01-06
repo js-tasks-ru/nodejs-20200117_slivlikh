@@ -4,6 +4,7 @@ const UrlPattern = require('url-pattern');
 const ReqMethods = {
   GET: 'get',
   POST: 'post',
+  DELETE: 'delete',
 };
 
 
@@ -11,6 +12,7 @@ class MicroRouter {
   constructor() {
     this.getController = new MethodController();
     this.postController = new MethodController();
+    this.deleteController = new MethodController();
   }
 
   get(url, handler) {
@@ -19,6 +21,10 @@ class MicroRouter {
 
   post(url, handler) {
     this.postController.registerHandler(url, handler);
+  }
+
+  delete(url, handler) {
+    this.deleteController.registerHandler(url, handler);
   }
 
   middleware() {
@@ -34,6 +40,8 @@ class MicroRouter {
         return this.getController;
       case ReqMethods.POST:
         return this.postController;
+      case ReqMethods.DELETE:
+        return this.deleteController;
       default:
         console.warn(`There is not repo for ${req.method} method`);
     }
@@ -51,7 +59,7 @@ class HandlersRepo {
     this.handlersRepo.set(pattern, handler);
   }
   getHandler(key) {
-   return this.handlersRepo.get(key);
+    return this.handlersRepo.get(key);
   }
 
   keys() {
