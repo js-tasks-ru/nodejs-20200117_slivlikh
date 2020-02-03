@@ -1,8 +1,8 @@
 const http = require('http');
 const path = require('path');
-const microExpress = require('../common/MicroExpress');
-const MicroRouter = require('../common/MicroRouter');
-const {writeFile} = require('../common/fileManager');
+const microExpress = require('./common/MicroExpress');
+const MicroRouter = require('./common/MicroRouter');
+const {writeFile} = require('./common/fileManager');
 const app = microExpress();
 const router = new MicroRouter();
 const server = http.createServer(app.handler());
@@ -17,7 +17,11 @@ app.use((err, req, res, next) => {
 
 
 router.post('/(:fileName).(:fileExpansion)', (req, res, next) => {
-  const filePath = path.join(path.resolve(__dirname), FILES_DIR, `${req.params.fileName}.${req.params.fileExpansion}`);
+  const filePath = path.join(
+      path.resolve(__dirname),
+      FILES_DIR,
+      `${req.params.fileName}.${req.params.fileExpansion}`
+  );
   writeFile(req, res, filePath, {limit: 1024 * 1024}).then(() => {
     next();
   }).catch((err) => {

@@ -1,23 +1,7 @@
 const fs = require('fs');
-const LimitSizeStream = require('../2-task/LimitSizeStream');
-const LimitExceededError = require('../2-task/LimitExceededError');
+const LimitSizeStream = require('../LimitSizeStream');
+const LimitExceededError = require('../LimitExceededError');
 
-function getFile(req, res, path) {
-  const errorsCode = ['ENOENT', 'ENOTDIR'];
-  return new Promise((resolve, reject) => {
-    new fs.createReadStream(path).on('error', (err) => {
-      if (errorsCode.includes(err.code)) {
-        res.statusCode = 404;
-        res.end();
-        resolve();
-        return;
-      }
-      reject(err);
-    }).on('end', () => {
-      resolve();
-    }).pipe(res);
-  });
-}
 
 function writeFile(req, res, path, params) {
   return new Promise(async (resolve, reject) => {
@@ -84,28 +68,6 @@ function writeFile(req, res, path, params) {
   });
 }
 
-function removeFile(req, res, path) {
-  const errorsCode = ['ENOENT'];
-  return new Promise((resolve, reject) => {
-    fs.unlink(path, (err) => {
-      reject(new Error());
-      if (!err) {
-        res.statusCode = 200;
-        res.end();
-        return resolve();
-      }
-      if (errorsCode.includes(err.code)) {
-        res.statusCode = 404;
-        res.end();
-        return resolve();
-      }
-      reject(err);
-    });
-  });
-}
-
 module.exports = {
-  getFile,
   writeFile,
-  removeFile,
 };

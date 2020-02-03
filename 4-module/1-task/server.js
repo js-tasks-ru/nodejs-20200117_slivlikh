@@ -1,8 +1,8 @@
 const http = require('http');
 const path = require('path');
-const microExpress = require('../common/MicroExpress');
-const MicroRouter = require('../common/MicroRouter');
-const {getFile} = require('../common/fileManager');
+const microExpress = require('./common/MicroExpress');
+const MicroRouter = require('./common/MicroRouter');
+const {getFile} = require('./common/fileManager');
 
 const app = microExpress();
 const router = new MicroRouter();
@@ -18,7 +18,11 @@ app.use((err, req, res, next) => {
 
 
 router.get('/(:fileName).(:fileExpansion)', (req, res, next) => {
-  const filePath = path.join(path.resolve(__dirname), FILES_DIR, `${req.params.fileName}.${req.params.fileExpansion}`);
+  const filePath = path.join(
+      path.resolve(__dirname),
+      FILES_DIR,
+      `${req.params.fileName}.${req.params.fileExpansion}`
+  );
   getFile(req, res, filePath).then(() => {
     next();
   }).catch((err) => {
