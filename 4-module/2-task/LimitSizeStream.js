@@ -20,8 +20,13 @@ class LimitSizeStream extends stream.Transform {
     if (this.size > this.limit) {
       callback(new LimitExceededError());
     } else {
-      callback(null, chunk);
+      this.push(chunk);
+      callback(null);
     }
+  }
+
+  _flush (done) {
+    done();
   }
 }
 

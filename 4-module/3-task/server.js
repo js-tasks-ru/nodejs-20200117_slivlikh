@@ -1,23 +1,41 @@
-const url = require('url');
 const http = require('http');
 const path = require('path');
+const microExpress = require('./common/MicroExpress');
+const MicroRouter = require('./common/MicroRouter');
+const {removeFile} = require('./common/fileManager');
+const app = microExpress();
+const router = new MicroRouter();
+const server = http.createServer(app.handler());
+const FILES_DIR = 'files';
 
-const server = new http.Server();
+app.use(router.middleware());
 
-server.on('request', (req, res) => {
-  const pathname = url.parse(req.url).pathname.slice(1);
+app.use((err, req, res, next) => {
+  res.statusCode = 500;
+  res.end(JSON.stringify(err));
+});
 
-  const filepath = path.join(__dirname, 'files', pathname);
+router.delete('/(:fileName).(:fileExpansion)', async (req, res, next) => {
+  const filePath = path.join(
+      path.resolve(__dirname),
+      FILES_DIR,
+      `${req.params.fileName}.${req.params.fileExpansion}`
+  );
+  removeFile(req, res, filePath).then(() => {
+    next();
+  }).catch((err) => {
+    next(err);
+  });
+});
 
-  switch (req.method) {
-    case 'DELETE':
+router.delete('(/:url)/*', (req, res) => {
+  res.statusCode = 400;
+  res.end(`Deep url ${req.params.url} 400`);
+});
 
-      break;
-
-    default:
-      res.statusCode = 501;
-      res.end('Not implemented');
-  }
+router.delete('*/(:fileName).(:fileExpansion)', (req, res) => {
+  res.statusCode = 400;
+  res.end(`${req.params.fileName}.${req.params.fileExpansion} deep 400`);
 });
 
 module.exports = server;
