@@ -30,14 +30,6 @@ function writeFile(req, res, path, params) {
       return;
     }
 
-    const isExist = await isFileExist(path);
-    if (isExist) {
-      res.setHeader('Connection', 'close');
-      res.statusCode = 409;
-      res.end();
-      resolve();
-      return;
-    }
 
     const writeStream = fs.createWriteStream(path, {
       flags: 'wx',
@@ -57,6 +49,13 @@ function writeFile(req, res, path, params) {
     });
 
     writeStream.on('error', (err) => {
+      if (err.code === 'EEXIST') {
+        res.setHeader('Connection', 'close');
+        res.statusCode = 409;
+        res.end();
+        resolve();
+        return;
+      }
       fs.unlink(path, (err) => {});
       reject(err);
     }).on('close', () => {
@@ -99,21 +98,8 @@ function removeFile(req, res, path) {
   });
 }
 
-function isFileExist(path) {
-  return new Promise((res, rej) => {
-    fs.access(path, fs.constants.F_OK, (err) => {
-      if (err) {
-        res(false);
-        return;
-      }
-      res(true);
-    });
-  });
-}
-
 module.exports = {
   getFile,
   writeFile,
   removeFile,
-  isFileExist,
 };
