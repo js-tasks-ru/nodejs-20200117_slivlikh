@@ -29,8 +29,6 @@ function writeFile(req, res, path, params) {
       resolve();
       return;
     }
-
-
     const writeStream = fs.createWriteStream(path, {
       flags: 'wx',
     });
@@ -64,12 +62,20 @@ function writeFile(req, res, path, params) {
       resolve();
     });
 
-    req.on('close', async (e) => {
-      if (res.writableEnded) {
-        return;
-      }
+
+    // eq.on('close', async (e) => {
+    //   if (res.writableEnded) {
+    //     return;
+    //   }
+    //   fs.unlink(path, (err) => {});
+    // })
+    // it has passed test when node 12.14, but has crashed when 12.4
+
+    req.on('aborted', async (e) => {
       fs.unlink(path, (err) => {});
     }).on('error', (error) => {
+      transformStream.destroy();
+      writeStream.destroy();
       fs.unlink(path, (err) => {});
       reject(error);
     });
